@@ -50,14 +50,13 @@ public:
 	shared_ptr<T> GetOrCreate(const string &key, Args &&...args) {
 		lock_guard<mutex> glock(lock);
 
-		auto entry = cache.find(key);
-		if (entry == cache.end()) {
+		auto &object = cache[key];
+		if (object == nullptr) {
 			auto value = make_shared<T>(args...);
-			cache[key] = value;
+			object = value;
 			return value;
 		}
-		auto object = entry->second;
-		if (!object || object->GetObjectType() != T::ObjectType()) {
+		if (object->GetObjectType() != T::ObjectType()) {
 			return nullptr;
 		}
 		return std::static_pointer_cast<T, ObjectCacheEntry>(object);
